@@ -53,11 +53,11 @@ export default function ServicesGrid() {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             {SCENARIOS.map((item) => (
-              <article
+              <div
                 key={item.title}
-                className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm"
+                className="flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm"
               >
-                <div className="space-y-3">
+                <div className="flex flex-1 flex-col">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold leading-snug text-zinc-950">
                       {item.title}
@@ -67,14 +67,16 @@ export default function ServicesGrid() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-semibold text-white shadow-md shadow-zinc-950/15 transition-colors hover:bg-zinc-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
-                  >
-                    Разобрать ситуацию
-                  </button>
+                  <div className="mt-auto pt-3">
+                    <a
+                      href="#contact"
+                      className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-semibold text-white shadow-md shadow-zinc-950/15 transition-colors hover:bg-zinc-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+                    >
+                      Разобрать ситуацию
+                    </a>
+                  </div>
                 </div>
-              </article>
+              </div>
             ))}
           </div>
         </div>

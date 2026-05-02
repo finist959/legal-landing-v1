@@ -13,12 +13,12 @@ export default function FinalCTA() {
           </header>
 
           <div className="space-y-2">
-            <button
-              type="button"
+            <a
+              href="#contact"
               className="inline-flex h-16 w-full items-center justify-center rounded-xl bg-zinc-950 px-6 text-lg font-semibold text-white shadow-lg shadow-zinc-950/25 transition-colors hover:bg-zinc-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
             >
               Разобрать ситуацию
-            </button>
+            </a>
             <p className="text-sm font-medium text-zinc-700">
               Ответим в течение 10 минут
             </p>

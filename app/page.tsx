@@ -4,6 +4,7 @@ import TrustStrip from "@/components/TrustStrip";
 import Benefits from "@/components/Benefits";
 import Process from "@/components/Process";
 import FinalCTA from "@/components/FinalCTA";
+import ContactForm from "@/components/ContactForm";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <Benefits />
       <Process />
       <FinalCTA />
+      <ContactForm />
     </main>
   );
 }
