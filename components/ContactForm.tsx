@@ -29,6 +29,13 @@ export default function ContactForm() {
 
               const form = e.currentTarget;
 
+              const honeypot = form.website.value;
+
+              if (honeypot) {
+                setLoading(false);
+                return;
+              }
+
               const phone = form.phone.value;
 
               const cleanPhone = phone.replace(/\D/g, "");
@@ -71,6 +78,13 @@ export default function ContactForm() {
 
             }}
           >
+            <input
+              type="text"
+              name="website"
+              className="hidden"
+              autoComplete="off"
+            />
+
             <div className="space-y-3">
               <input
                 type="tel"
