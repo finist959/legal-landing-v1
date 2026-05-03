@@ -58,6 +58,7 @@ export async function POST(request: Request) {
 
     const BOT_TOKEN = process.env.BOT_TOKEN;
     const CHAT_ID = process.env.CHAT_ID;
+    const CHAT_ID_2 = process.env.CHAT_ID_2;
 
     if (!BOT_TOKEN || !CHAT_ID || !phone) {
       return Response.json({ success: false });
@@ -85,6 +86,19 @@ export async function POST(request: Request) {
         }),
       },
     );
+
+    if (CHAT_ID_2) {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: CHAT_ID_2,
+          text,
+        }),
+      });
+    }
 
     const telegramJson = (await telegramRes.json()) as { ok?: boolean };
 
