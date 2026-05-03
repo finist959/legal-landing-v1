@@ -48,22 +48,51 @@ export async function POST(request: Request) {
       return Response.json({ success: false });
     }
 
-    const cleanPhone = phone.replace(/\D/g, "");
+    const rawPhone = phone.trim();
 
-    // Normalize to +7XXXXXXXXXX format
-    let normalizedPhone = cleanPhone;
+    const cleanPhone = rawPhone.replace(/\D/g, "");
 
-    if (normalizedPhone.startsWith("8") && normalizedPhone.length === 11) {
-      normalizedPhone = "7" + normalizedPhone.slice(1);
+    // Strict Russian phone validation
+    let normalizedPhone = "";
+
+    // Case 1: starts with +7
+    if (rawPhone.startsWith("+7")) {
+      normalizedPhone = rawPhone.replace(/\D/g, "");
+      normalizedPhone = "+" + normalizedPhone;
+
+      if (!/^\+7\d{10}$/.test(normalizedPhone)) {
+        return Response.json({ success: false });
+      }
     }
 
-    if (normalizedPhone.length === 10) {
-      normalizedPhone = "7" + normalizedPhone;
+    // Case 2: starts with 8
+    else if (rawPhone.startsWith("8")) {
+      const digits = cleanPhone;
+
+      if (digits.length !== 11) {
+        return Response.json({ success: false });
+      }
+
+      normalizedPhone = "+7" + digits.slice(1);
     }
 
-    normalizedPhone = "+" + normalizedPhone;
+    // Case 3: starts with 7 (without +)
+    else if (rawPhone.startsWith("7")) {
+      const digits = cleanPhone;
 
-    // Validate final format
+      if (digits.length !== 11) {
+        return Response.json({ success: false });
+      }
+
+      normalizedPhone = "+" + digits;
+    }
+
+    // Everything else → reject
+    else {
+      return Response.json({ success: false });
+    }
+
+    // Final safety check
     if (!/^\+7\d{10}$/.test(normalizedPhone)) {
       return Response.json({ success: false });
     }

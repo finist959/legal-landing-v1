@@ -6,6 +6,30 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+
+    let result = "+7";
+
+    if (digits.length > 1) {
+      result += " (" + digits.slice(1, 4);
+    }
+
+    if (digits.length >= 5) {
+      result += ") " + digits.slice(4, 7);
+    }
+
+    if (digits.length >= 8) {
+      result += "-" + digits.slice(7, 9);
+    }
+
+    if (digits.length >= 10) {
+      result += "-" + digits.slice(9, 11);
+    }
+
+    return result;
+  };
+
   return (
     <section id="contact" className="bg-white">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
@@ -93,9 +117,31 @@ export default function ContactForm() {
               <input
                 type="tel"
                 name="phone"
+                inputMode="tel"
+                placeholder="+7 (___) ___-__-__"
+                pattern={"^\\+7\\s?\\(\\d{3}\\)\\s?\\d{3}-\\d{2}-\\d{2}$"}
                 required
-                onChange={() => setStatus("idle")}
-                placeholder="Ваш телефон"
+                onChange={(e) => {
+                  e.target.value = formatPhone(e.target.value);
+                  setStatus("idle");
+                }}
+                onFocus={(e) => {
+                  if (!e.target.value) {
+                    e.target.value = "+7";
+                  }
+                }}
+                onKeyDown={(e) => {
+                  const input = e.currentTarget;
+
+                  // Prevent deleting +7
+                  if (
+                    (e.key === "Backspace" || e.key === "Delete") &&
+                    input.selectionStart !== null &&
+                    input.selectionStart <= 2
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
                 className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-950 outline-none transition-shadow placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
               />
 
