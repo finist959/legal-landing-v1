@@ -27,6 +27,8 @@ export async function POST(request: Request) {
   }
   try {
     const body = (await request.json()) as unknown;
+    const sourceRaw = (body as { source?: unknown }).source;
+    const source = typeof sourceRaw === "string" ? sourceRaw : "unknown";
     console.log("Incoming lead:", body);
     if (!body || typeof body !== "object") {
       return Response.json({ success: false });
@@ -67,6 +69,8 @@ export async function POST(request: Request) {
     console.log("Sending to Telegram:", { phone, message });
 
     const text = `
+📍 Источник: ${source}
+
 🚗 Новый лид
 
 📞 Телефон: ${phone}
