@@ -40,9 +40,31 @@ export async function POST(request: Request) {
     const phone = typeof phoneRaw === "string" ? phoneRaw.trim() : "";
     const message = typeof messageRaw === "string" ? messageRaw.trim() : "";
 
+    const consentRaw = (body as { consent?: unknown }).consent;
+
+    const consent = consentRaw === true;
+
+    if (!consent) {
+      return Response.json({ success: false });
+    }
+
     const cleanPhone = phone.replace(/\D/g, "");
 
-    if (!cleanPhone || cleanPhone.length < 10) {
+    // Normalize to +7XXXXXXXXXX format
+    let normalizedPhone = cleanPhone;
+
+    if (normalizedPhone.startsWith("8") && normalizedPhone.length === 11) {
+      normalizedPhone = "7" + normalizedPhone.slice(1);
+    }
+
+    if (normalizedPhone.length === 10) {
+      normalizedPhone = "7" + normalizedPhone;
+    }
+
+    normalizedPhone = "+" + normalizedPhone;
+
+    // Validate final format
+    if (!/^\+7\d{10}$/.test(normalizedPhone)) {
       return Response.json({ success: false });
     }
 
@@ -50,13 +72,13 @@ export async function POST(request: Request) {
       return Response.json({ success: false });
     }
 
-    const lastLeadTime = recentLeads.get(cleanPhone) || 0;
+    const lastLeadTime = recentLeads.get(normalizedPhone) || 0;
 
     if (Date.now() - lastLeadTime < 5 * 60 * 1000) {
       return Response.json({ success: false });
     }
 
-    recentLeads.set(cleanPhone, Date.now());
+    recentLeads.set(normalizedPhone, Date.now());
 
     const BOT_TOKEN = process.env.BOT_TOKEN;
     const CHAT_ID = process.env.CHAT_ID;
@@ -73,7 +95,7 @@ export async function POST(request: Request) {
 
 🚗 Новый лид
 
-📞 Телефон: ${phone}
+📞 Телефон: ${normalizedPhone}
 📝 Ситуация: ${message || "не указана"}
 `;
 

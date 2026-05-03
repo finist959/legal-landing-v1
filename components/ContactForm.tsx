@@ -29,6 +29,8 @@ export default function ContactForm() {
 
               const form = e.currentTarget;
 
+              const consent = form.consent.checked;
+
               const honeypot = form.website.value;
 
               if (honeypot) {
@@ -58,6 +60,7 @@ export default function ContactForm() {
                     phone,
                     message,
                     source: "ДТП",
+                    consent,
                   }),
                 });
 
@@ -104,6 +107,18 @@ export default function ContactForm() {
                 className="w-full resize-y rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base text-zinc-950 outline-none transition-shadow placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
               />
             </div>
+
+            <label className="flex items-start gap-2 text-xs text-zinc-600">
+              <input
+                type="checkbox"
+                name="consent"
+                required
+                className="mt-1"
+              />
+              <span>
+                Я даю согласие на обработку персональных данных
+              </span>
+            </label>
 
             <button
               type="submit"
