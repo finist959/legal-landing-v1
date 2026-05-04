@@ -5,6 +5,7 @@ import { useState } from "react";
 export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -46,6 +47,13 @@ export default function ContactForm() {
           <form
             className="space-y-3 text-left"
             onSubmit={async (e) => {
+              const now = Date.now();
+
+              if (now - lastSubmitTime < 3000) {
+                return;
+              }
+
+              setLastSubmitTime(now);
 
               e.preventDefault();
               setLoading(true);
@@ -141,6 +149,14 @@ export default function ContactForm() {
                   ) {
                     e.preventDefault();
                   }
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+
+                  const paste = e.clipboardData.getData("text");
+                  const formatted = formatPhone(paste);
+
+                  e.currentTarget.value = formatted;
                 }}
                 className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-950 outline-none transition-shadow placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
               />
