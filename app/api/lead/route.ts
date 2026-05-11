@@ -1,6 +1,16 @@
 const requests = new Map<string, number>();
 const recentLeads = new Map<string, number>();
 
+const maskPhone = (value: string) => {
+  if (value.length < 6) return "***";
+  return value.slice(0, 4) + "***" + value.slice(-2);
+};
+
+const maskToken = (value: string) => {
+  if (value.length < 10) return "***";
+  return value.slice(0, 6) + "..." + value.slice(-4);
+};
+
 export async function POST(request: Request) {
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -19,7 +29,7 @@ export async function POST(request: Request) {
     console.warn("REJECTED_LEAD", {
       time: new Date().toISOString(),
       ip,
-      phone,
+      phone: maskPhone(phone),
       userAgent,
       source,
       reason,
@@ -39,7 +49,7 @@ export async function POST(request: Request) {
     console.warn("REJECTED_LEAD", {
       time: new Date().toISOString(),
       ip,
-      phone,
+      phone: maskPhone(phone),
       userAgent,
       source,
       reason,
@@ -50,13 +60,12 @@ export async function POST(request: Request) {
     const body = (await request.json()) as unknown;
     const sourceRaw = (body as { source?: unknown }).source;
     source = typeof sourceRaw === "string" ? sourceRaw : "unknown";
-    console.log("Incoming lead:", body);
     if (!body || typeof body !== "object") {
       const reason = "invalid_body";
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -74,12 +83,19 @@ export async function POST(request: Request) {
 
     const consent = consentRaw === true;
 
+    console.log("INCOMING_LEAD", {
+      phone: maskPhone(phone),
+      source,
+      consent,
+      messageLength: message.length,
+    });
+
     if (!consent) {
       const reason = "no_consent";
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -104,7 +120,7 @@ export async function POST(request: Request) {
         console.warn("REJECTED_LEAD", {
           time: new Date().toISOString(),
           ip,
-          phone,
+          phone: maskPhone(phone),
           userAgent,
           source,
           reason,
@@ -122,7 +138,7 @@ export async function POST(request: Request) {
         console.warn("REJECTED_LEAD", {
           time: new Date().toISOString(),
           ip,
-          phone,
+          phone: maskPhone(phone),
           userAgent,
           source,
           reason,
@@ -142,7 +158,7 @@ export async function POST(request: Request) {
         console.warn("REJECTED_LEAD", {
           time: new Date().toISOString(),
           ip,
-          phone,
+          phone: maskPhone(phone),
           userAgent,
           source,
           reason,
@@ -159,7 +175,7 @@ export async function POST(request: Request) {
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -173,7 +189,7 @@ export async function POST(request: Request) {
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -186,7 +202,7 @@ export async function POST(request: Request) {
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -201,7 +217,7 @@ export async function POST(request: Request) {
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -211,16 +227,21 @@ export async function POST(request: Request) {
 
     recentLeads.set(normalizedPhone, Date.now());
 
-    const BOT_TOKEN = process.env.BOT_TOKEN;
-    const CHAT_ID = process.env.CHAT_ID;
+    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? process.env.BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? process.env.CHAT_ID;
     const CHAT_ID_2 = process.env.CHAT_ID_2;
+
+    console.log("TELEGRAM_ENV_CHECK", {
+      botTokenPresent: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+      chatIdPresent: Boolean(process.env.TELEGRAM_CHAT_ID),
+    });
 
     if (!BOT_TOKEN || !CHAT_ID || !phone) {
       const reason = "missing_telegram_config";
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -228,7 +249,11 @@ export async function POST(request: Request) {
       return Response.json({ success: false });
     }
 
-    console.log("Sending to Telegram:", { phone, message });
+    console.log("Sending to Telegram:", {
+      phone: maskPhone(phone),
+      source,
+      messageLength: message.length,
+    });
 
     const text = `
 📍 Источник: ${source}
@@ -269,11 +294,25 @@ export async function POST(request: Request) {
     const telegramJson = (await telegramRes.json()) as { ok?: boolean };
 
     if (!telegramRes.ok || telegramJson.ok !== true) {
+      console.log("TELEGRAM_API_RESPONSE", {
+        status: telegramRes.status,
+        ok: telegramJson.ok,
+        error_code:
+          typeof (telegramJson as { error_code?: unknown }).error_code ===
+          "number"
+            ? (telegramJson as { error_code?: number }).error_code
+            : undefined,
+        description:
+          typeof (telegramJson as { description?: unknown }).description ===
+          "string"
+            ? (telegramJson as { description?: string }).description
+            : undefined,
+      });
       const reason = "telegram_failed";
       console.warn("REJECTED_LEAD", {
         time: new Date().toISOString(),
         ip,
-        phone,
+        phone: maskPhone(phone),
         userAgent,
         source,
         reason,
@@ -286,7 +325,7 @@ export async function POST(request: Request) {
     console.error("SERVER_ERROR", {
       time: new Date().toISOString(),
       ip,
-      phone,
+      phone: maskPhone(phone),
       userAgent,
       source,
       error: error instanceof Error ? error.message : String(error),
